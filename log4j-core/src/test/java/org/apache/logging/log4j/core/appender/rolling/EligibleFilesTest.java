@@ -16,41 +16,45 @@
  */
 package org.apache.logging.log4j.core.appender.rolling;
 
+import static org.junit.Assert.assertTrue;
+
 import java.nio.file.Path;
 import java.util.Map;
 
 import org.apache.logging.log4j.core.pattern.NotANumber;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
+import org.mockito.Mockito;
 
 /**
  * Test getEligibleFiles method.
  */
 public class EligibleFilesTest {
 
-    @Test
-    public void runTest() throws Exception {
-        final String path = "target/test-classes/rolloverPath/log4j.txt.20170112_09-" + NotANumber.VALUE + ".gz";
-        final TestRolloverStrategy strategy = new TestRolloverStrategy();
-        final Map<Integer, Path> files = strategy.findFilesInPath(path);
-        assertTrue("No files found", files.size() > 0);
-        assertTrue("Incorrect number of files found. Should be 30, was " + files.size(), files.size() == 30);
-    }
+	@Test
+	public void runTest() throws Exception {
+		final String path = "target/test-classes/rolloverPath/log4j.txt.20170112_09-" + NotANumber.VALUE + ".gz";
+		final AbstractRolloverStrategy str = Mockito.mock(AbstractRolloverStrategy.class,
+				Mockito.withSettings().defaultAnswer(Mockito.CALLS_REAL_METHODS).useConstructor());
+		Mockito.when(str.rollover(Mockito.any())).thenReturn(null);
+		// final TestRolloverStrategy strategy = new TestRolloverStrategy();
+		final Map<Integer, Path> files = str.getEligibleFiles(path, "log4j.txt.%d{yyyyMMdd}-%i.gz");
+		assertTrue("No files found", files.size() > 0);
+		assertTrue("Incorrect number of files found. Should be 30, was " + files.size(), files.size() == 30);
+	}
 
-    private class TestRolloverStrategy extends AbstractRolloverStrategy {
+	private class TestRolloverStrategy extends AbstractRolloverStrategy {
 
-        public TestRolloverStrategy() {
-            super(null);
-        }
+		public TestRolloverStrategy() {
+			super(null);
+		}
 
-        @Override
-        public RolloverDescription rollover(final RollingFileManager manager) throws SecurityException {
-            return null;
-        }
+		@Override
+		public RolloverDescription rollover(final RollingFileManager manager) throws SecurityException {
+			return null;
+		}
 
-        public Map<Integer, Path> findFilesInPath(final String path) {
-            return getEligibleFiles(path, "log4j.txt.%d{yyyyMMdd}-%i.gz");
-        }
-    }
+		public Map<Integer, Path> findFilesInPath(final String path) {
+			return getEligibleFiles(path, "log4j.txt.%d{yyyyMMdd}-%i.gz");
+		}
+	}
 }
